@@ -24,7 +24,24 @@ echo -e "${COLOR_YELLOW}Changes detected in your repository:${COLOR_RESET}"
 git status -s # -s provides short, easy-to-read output
 echo "" # Add a newline for spacing
 
-# --- Step 3: Prompt for a commit message ---
+# --- Step 3: Confirm Git Identity ---
+USER_NAME=$(git config --get user.name)
+USER_EMAIL=$(git config --get user.email)
+
+echo -e "${COLOR_CYAN}Checking Git identity...${COLOR_RESET}"
+
+if [ -n "$USER_NAME" ] && [ -n "$USER_EMAIL" ]; then
+    echo -e "  - Committing as: ${COLOR_GREEN}$USER_NAME <$USER_EMAIL>${COLOR_RESET}"
+else
+    echo -e "  - ${COLOR_YELLOW}Git user.name and user.email are not explicitly set.${COLOR_RESET}"
+    echo -e "  - Git will proceed using a system-generated identity."
+    echo -e "  - To set your identity permanently, you can use:"
+    echo -e "    git config --global user.name \"Your Name\""
+    echo -e "    git config --global user.email \"you@example.com\""
+fi
+echo ""
+
+# --- Step 4: Prompt for a commit message ---
 echo -e "${COLOR_CYAN}Please enter a commit message (e.g., 'feat: Add user login page'):${COLOR_RESET}"
 read -p "> " COMMIT_MESSAGE
 
@@ -34,17 +51,19 @@ if [ -z "$COMMIT_MESSAGE" ]; then
     exit 1
 fi
 
-# --- Step 4: Stage, Commit, and Push ---
+# --- Step 5: Stage, Commit, and Push ---
 echo -e "\n${COLOR_YELLOW}🚀 Staging all changes, committing, and pushing to remote...${COLOR_RESET}"
 
 git add . && \
 git commit -m "$COMMIT_MESSAGE" && \
 git push
 
-# --- Step 5: Final Confirmation ---
+# --- Step 6: Final Confirmation ---
 # Check the exit code of the last command ($?) to see if it was successful
 if [ $? -eq 0 ]; then
-    echo -e "\n${COLOR_GREEN}✔ Successfully pushed changes to the remote repository!${COLOR_RESET}"
+    REPO_URL=$(git remote get-url origin)
+    echo -e "\n${COLOR_GREEN}✔ Successfully pushed changes!${COLOR_RESET}"
+    echo -e "You can view your repository here: ${COLOR_CYAN}${REPO_URL}${COLOR_RESET}"
 else
     echo -e "\n${COLOR_RED}✖ An error occurred during the push process. Please check the output above.${COLOR_RESET}"
     exit 1
