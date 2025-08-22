@@ -98,6 +98,36 @@ pip install -r requirements.txt
 
 The application requires API keys for Unsplash, Pexels, and Pixabay.
 
+<details>
+<summary><strong>Click here for instructions on how to get API keys.</strong></summary>
+
+#### Unsplash
+1.  **Create an account**: Go to [unsplash.com/join](https://unsplash.com/join) and create a free account.
+2.  **Become a developer**: Visit the [Unsplash Developers](https://unsplash.com/developers) page and accept the terms to register as a developer.
+3.  **Create a new application**:
+    *   Navigate to your [Applications dashboard](https://unsplash.com/oauth/applications).
+    *   Click **New Application**, accept the API usage guidelines, and give your app a name and description.
+4.  **Get your key**: Your **Access Key** will be available on your application's dashboard. This is the key you need.
+
+For more details, refer to the [official Unsplash API documentation](https://unsplash.com/documentation).
+
+#### Pexels
+1.  **Create an account**: Go to [pexels.com/join](https://www.pexels.com/join/) and create a free account.
+2.  **Request an API Key**: Visit the [Pexels API page](https://www.pexels.com/api/) and click the button to request your key. You will need to provide a reason for your request.
+3.  **Get your key**: Your API key will be displayed on the same page immediately after your request is approved.
+
+For more details, refer to the [official Pexels API documentation](https://www.pexels.com/api/documentation/).
+
+#### Pixabay
+1.  **Create an account**: Go to [pixabay.com/accounts/register/](https://pixabay.com/accounts/register/) and create a free account.
+2.  **Find your API key**: After logging in, navigate to the [Pixabay API documentation page](https://pixabay.com/api/docs/).
+3.  **Get your key**: Your API key will be displayed directly on this page under the "Search Images" section.
+
+For more details, refer to the [official Pixabay API documentation](https://pixabay.com/api/docs/).
+
+</details>
+<br>
+
 1.  Create a file named `.env` in the root of the project directory.
 2.  Add your API keys to this file in the following format:
 
