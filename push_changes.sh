@@ -65,7 +65,8 @@ if [ $? -eq 0 ]; then
     echo -e "\n${COLOR_GREEN}✔ Successfully pushed changes!${COLOR_RESET}"
     echo -e "You can view your repository here: ${COLOR_CYAN}${REPO_URL}${COLOR_RESET}"
 
-    # Provide a system-specific command to open the URL
+    # --- Step 7: Offer to open in browser ---
+    # Detect the correct open command based on OS
     OPEN_CMD=""
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         OPEN_CMD="xdg-open"
@@ -75,8 +76,19 @@ if [ $? -eq 0 ]; then
         OPEN_CMD="start"
     fi
 
+    # If an open command is available, ask the user
     if [ -n "$OPEN_CMD" ]; then
-        echo -e "Or run this command to open it now: ${COLOR_YELLOW}${OPEN_CMD} ${REPO_URL}${COLOR_RESET}"
+        echo "" # Add a newline for spacing
+        read -p "$(echo -e ${COLOR_YELLOW}"Open repository in browser? (y/N) "${COLOR_RESET})" choice
+        case "$choice" in
+          y|Y ) 
+            echo -e "Opening..."
+            $OPEN_CMD $REPO_URL
+            ;;
+          * ) 
+            # Do nothing on any other input
+            ;;
+        esac
     fi
 else
     echo -e "\n${COLOR_RED}✖ An error occurred during the push process. Please check the output above.${COLOR_RESET}"
