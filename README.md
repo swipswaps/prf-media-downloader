@@ -1,69 +1,28 @@
-# Royalty-Free Media Bulk Downloader
+# Royalty-Free Media Bulk Downloader (n8n Edition)
 
-This is a Python-based application for bulk downloading royalty-free images and videos from multiple sources. It features a command-line interface for scripting and a graphical user interface for interactive use.
+This project provides a self-hosted, web-based interface for bulk downloading royalty-free images and videos from multiple sources. It runs on [n8n](https://n8n.io/), a powerful workflow automation tool, and is containerized with Docker for easy setup and management.
 
-Supported Sources:
-- **API-based**: Unsplash, Pexels, Pixabay
-- **Scraping-based**: Coverr, Mixkit, Videvo
+## Features
 
-## 1. Install Prerequisites
+- **Web-Based Interface**: Trigger and manage downloads from a reliable, graphical interface in your browser.
+- **Multi-Source**: Fetches from Unsplash, Pexels, and Pixabay via their official APIs.
+- **Extensible**: Includes a Python environment for scraping additional sites (e.g., Videvo).
+- **Secure**: Manages API keys using n8n's encrypted credential management.
+- **Portable**: Runs consistently across any system with Docker.
 
-Before you can run the project, you need to install some essential tools.
+## Prerequisites
 
-<details>
-<summary><strong>macOS Installation (using Homebrew)</strong></summary>
+Before you begin, ensure you have the following installed:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/) (This is included with Docker Desktop on macOS and Windows)
 
-Open your Terminal and run the following commands:
+## How It Works
 
-```bash
-# Install Homebrew if you don't have it already
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+This project uses a `docker-compose.yml` file to launch a pre-configured n8n instance. We provide a `workflow.json` file that you can import into n8n. This workflow is triggered by a simple web request (a "webhook"), processes the API and scraping logic, and downloads the resulting media to a local folder on your machine.
 
-# Install Python, Git, and the GitHub CLI
-brew install python git github
-```
+## Setup Instructions
 
-</details>
-
-<details>
-<summary><strong>Windows Installation (using Chocolatey)</strong></summary>
-
-Open PowerShell as an Administrator and run the following commands:
-
-```powershell
-# Install Chocolatey package manager if you don't have it
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-# Install Python, Git, and the GitHub CLI
-choco install python git gh -y
-```
-
-</details>
-
-<details>
-<summary><strong>Linux Installation (for Debian/Ubuntu)</strong></summary>
-
-Open your terminal and run the following commands:
-
-```bash
-# Update package list and install Python and Git
-sudo apt update && sudo apt install python3 python3-pip python3-venv git -y
-
-# Install the GitHub CLI
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-&& sudo apt update \
-&& sudo apt install gh -y
-```
-
-</details>
-
-## 2. Set Up the Project
-
-Follow these steps to get the project running on your local machine.
-
-### a. Clone the Repository
+### 1. Clone the Repository
 
 Open your terminal and clone this repository:
 ```bash
@@ -71,111 +30,52 @@ gh repo clone swipswaps/prf-media-downloader
 cd prf-media-downloader
 ```
 
-### b. Set Up a Virtual Environment
+### 2. Configure Environment
 
-It's highly recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects.
+The application uses a `.env` file to manage configuration.
 
-```bash
-# Create the virtual environment
-python3 -m venv .venv
+1.  Create a copy of the example file:
+    ```bash
+    cp .env.example .env
+    ```
+2.  (Optional) Open the `.env` file and set your local timezone (e.g., `America/New_York`) to ensure scheduled workflow runs are accurate.
 
-# Activate it
-# On macOS and Linux:
-source .venv/bin/activate
-# On Windows:
-# .\.venv\Scripts\activate
-```
+### 3. Launch the n8n Instance
 
-### c. Install Python Dependencies
-
-Install the required Python packages using the `requirements.txt` file:
+Run the following command from the project's root directory. This will build the custom Docker image and start the n8n container in the background.
 
 ```bash
-pip install -r requirements.txt
+docker-compose up --build -d
 ```
+The initial build may take a few minutes.
 
-### d. Configure API Keys
+### 4. First-Time n8n Setup
 
-The application requires API keys for Unsplash, Pexels, and Pixabay.
+1.  **Access n8n**: Open your web browser and navigate to [http://localhost:5678](http://localhost:5678).
+2.  **Create an Admin Account**: You will be prompted to create an owner account. This is the admin user for your private n8n instance.
+3.  **Set Up API Credentials**:
+    *   In the n8n sidebar, click **Credentials**, then **Add credential**.
+    *   Search for and select **Unsplash API**. Give it a name (e.g., `My Unsplash Key`) and enter your Unsplash Access Key.
+    *   Repeat this process for the **Pexels API** and **Pixabay API**. Search for the "Header Auth" credential type for Pexels and provide your key in the `Authorization` header field. For Pixabay, use the "Query Auth" credential type.
+4.  **Import the Workflow**:
+    *   In the n8n sidebar, click **Workflows**.
+    *   Click **Import from File** and select the `workflow.json` file from this project.
 
-<details>
-<summary><strong>Click here for instructions on how to get API keys.</strong></summary>
+### 5. Activate and Use the Workflow
 
-#### Unsplash
-1.  **Create an account**: Go to [unsplash.com/join](https://unsplash.com/join) and create a free account.
-2.  **Become a developer**: Visit the [Unsplash Developers](https://unsplash.com/developers) page and accept the terms to register as a developer.
-3.  **Create a new application**:
-    *   Navigate to your [Applications dashboard](https://unsplash.com/oauth/applications).
-    *   Click **New Application**, accept the API usage guidelines, and give your app a name and description.
-4.  **Get your key**: Your **Access Key** will be available on your application's dashboard. This is the key you need.
+1.  **Activate Workflow**: Open the imported "Royalty-Free Media Downloader" workflow and toggle the **Active** switch in the top-right corner to on.
+2.  **Get Webhook URL**:
+    *   In the workflow, click on the **Webhook** node.
+    *   Copy the **Test URL**.
+3.  **Trigger the Workflow**:
+    *   You can now send a `POST` request to this URL to trigger a download job. Replace `YOUR_QUERY` with your search term.
+    *   The following example uses `curl` from your terminal to search for 10 "office" images. The results will be saved to the `downloads` folder in your project directory.
 
-For more details, refer to the [official Unsplash API documentation](https://unsplash.com/documentation).
-
-#### Pexels
-1.  **Create an account**: Go to [pexels.com/join](https://www.pexels.com/join/) and create a free account.
-2.  **Request an API Key**: Visit the [Pexels API page](https://www.pexels.com/api/) and click the button to request your key. You will need to provide a reason for your request.
-3.  **Get your key**: Your API key will be displayed on the same page immediately after your request is approved.
-
-For more details, refer to the [official Pexels API documentation](https://www.pexels.com/api/documentation/).
-
-#### Pixabay
-1.  **Create an account**: Go to [pixabay.com/accounts/register/](https://pixabay.com/accounts/register/) and create a free account.
-2.  **Find your API key**: After logging in, navigate to the [Pixabay API documentation page](https://pixabay.com/api/docs/).
-3.  **Get your key**: Your API key will be displayed directly on this page under the "Search Images" section.
-
-For more details, refer to the [official Pixabay API documentation](https://pixabay.com/api/docs/).
-
-</details>
-<br>
-
-1.  Create a file named `.env` in the root of the project directory.
-2.  Add your API keys to this file in the following format:
-
-    ```env
-    UNSPLASH_KEY="your_unsplash_api_key"
-    PEXELS_KEY="your_pexels_api_key"
-    PIXABAY_KEY="your_pixabay_api_key"
+    ```bash
+    curl -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"query": "office", "items": 10}' \
+    http://localhost:5678/webhook-test/d2483582-1215-430b-9366-267484433140
     ```
 
-The application will automatically load these keys at runtime.
-
-## 3. Usage
-
-You can run the application in two modes: via the command line (CLI) or with the graphical user interface (GUI).
-
-### GUI Mode
-
-For an interactive experience, run the application with the `--gui` flag. This will open a settings window where you can configure your search, select sources, and choose an output directory before fetching and previewing the media.
-
-```bash
-python3 prf_media_downloader.py --gui
-```
-
-### Command-Line (CLI) Mode
-
-The CLI is ideal for scripting and automation. Here is the basic command structure:
-
-```bash
-python3 prf_media_downloader.py --query "Your Search Term" --items 10 --outdir ./downloads
-```
-
-**Common Arguments:**
-- `--query`: The search term for the media you want to find.
-- `--items`: The number of items to fetch from each source (default: 10).
-- `--outdir`: The directory where media will be saved (default: `./prf_media_downloads`).
-- `--sources`: A comma-separated list of sources to use (e.g., `unsplash,pexels`). Defaults to all.
-- `--threads`: Number of parallel download threads (default: 8).
-
-**Example:**
-To download 15 images and videos about "laptops" from Unsplash and Pexels into a folder named `tech_media`:
-```bash
-python3 prf_media_downloader.py --query "laptops" --items 15 --sources "unsplash,pexels" --outdir ./tech_media
-```
-
-### Automated Setup (For Linux/macOS)
-
-The included `install_and_run.sh` script can automate the setup process, including dependency installation and launching the application. You may need to make it executable first:
-```bash
-chmod +x install_and_run.sh
-./install_and_run.sh
-```
+You now have a fully functional, web-based media downloader!

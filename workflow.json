@@ -1,0 +1,372 @@
+{
+  "name": "Royalty-Free Media Downloader",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "d2483582-1215-430b-9366-267484433140",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        80,
+        300
+      ],
+      "webhookId": "d2483582-1215-430b-9366-267484433140"
+    },
+    {
+      "parameters": {
+        "functionCode": "const query = $json.query || 'office';\nconst items = $json.items || 5;\n\n// This node sets default values for the query and item count.\n// It ensures the workflow can run even if these are not provided in the webhook call.\n\nreturn [\n  {\n    json: {\n      query,\n      items,\n    }\n  }\n];"
+      },
+      "name": "Set Defaults",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.pexels.com/v1/search",
+        "authentication": "headerAuth",
+        "options": {
+          "splitIntoItems": true,
+          "response": {
+            "response": {
+              "json": {
+                "jsonPath": "photos"
+              }
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{$node[\"Set Defaults\"].json[\"query\"]}}"
+            },
+            {
+              "name": "per_page",
+              "value": "={{$node[\"Set Defaults\"].json[\"items\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Pexels (Photos)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        -100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pexelsApi",
+          "name": "Pexels API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.unsplash.com/search/photos",
+        "authentication": "predefinedCredentialType",
+        "options": {
+          "splitIntoItems": true,
+          "response": {
+            "response": {
+              "json": {
+                "jsonPath": "results"
+              }
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{$node[\"Set Defaults\"].json[\"query\"]}}"
+            },
+            {
+              "name": "per_page",
+              "value": "={{$node[\"Set Defaults\"].json[\"items\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Unsplash (Photos)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        100
+      ],
+      "credentials": {
+        "unsplashApi": {
+          "id": "unsplashApi",
+          "name": "Unsplash API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://pixabay.com/api/",
+        "options": {
+          "splitIntoItems": true,
+          "response": {
+            "response": {
+              "json": {
+                "jsonPath": "hits"
+              }
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "={{$credentials.PixabayApi.apiKey}}"
+            },
+            {
+              "name": "q",
+              "value": "={{$node[\"Set Defaults\"].json[\"query\"]}}"
+            },
+            {
+              "name": "per_page",
+              "value": "={{$node[\"Set Defaults\"].json[\"items\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Pixabay (Photos)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "credentials": {
+        "pixabayApi": {
+          "id": "pixabayApi",
+          "name": "Pixabay API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "code": "import requests\nfrom bs4 import BeautifulSoup\n\ndef fetch_videvo(query, items):\n    results = []\n    url = f\"https://www.videvo.net/search/{query}/\"\n    try:\n        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})\n        r.raise_for_status()\n        soup = BeautifulSoup(r.text, 'html.parser')\n        videos = soup.find_all('div', class_='video_preview_content', limit=items)\n        for v in videos:\n            link = v.find('a', href=True)\n            if link:\n                results.append({\n                    'source': 'videvo',\n                    'type': 'video',\n                    'download_url': f\"https://www.videvo.net{link['href']}\" # Note: This is a page URL, not a direct file link\n                })\n    except Exception as e:\n        print(f\"Videvo scrape failed: {e}\")\n    return results\n\nquery = $json['query']\nitems = $json['items']\nreturn fetch_videvo(query, items)"
+      },
+      "name": "Videvo (Scrape)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        500,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// This node standardizes the data structure from all API and scrape sources.\n// It ensures that subsequent nodes receive a consistent format.\n\nconst items = $items.map(item => {\n  const asset = item.json;\n  let standardized = {};\n\n  if (asset.source === 'videvo') { // Scraped data\n    standardized = asset;\n  } else if (asset.src) { // Pexels\n    standardized = {\n      source: 'pexels',\n      type: 'photo',\n      download_url: asset.src.original,\n      filename: `${asset.id}.jpg`\n    };\n  } else if (asset.urls) { // Unsplash\n    standardized = {\n      source: 'unsplash',\n      type: 'photo',\n      download_url: asset.urls.full,\n      filename: `${asset.id}.jpg`\n    };\n  } else if (asset.largeImageURL) { // Pixabay\n    standardized = {\n      source: 'pixabay',\n      type: 'photo',\n      download_url: asset.largeImageURL,\n      filename: `${asset.id_hash}.jpg`\n    };\n  }\n  \n  return { json: standardized };\n});\n\nreturn items;"
+      },
+      "name": "Standardize Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "Loop Over Assets",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$node[\"Loop Over Assets\"].json[\"download_url\"]}}",
+        "options": {
+          "response": {
+            "fullResponse": true,
+            "response": {
+              "binaryData": true
+            }
+          }
+        }
+      },
+      "name": "Download Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "/downloads/",
+        "fileName": "={{$node[\"Loop Over Assets\"].json[\"filename\"] || new Date().toISOString() + '.media'}}",
+        "binaryData": true
+      },
+      "name": "Save to Disk",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Defaults",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Defaults": {
+      "main": [
+        [
+          {
+            "node": "Pexels (Photos)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unsplash (Photos)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pixabay (Photos)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Videvo (Scrape)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pexels (Photos)": {
+      "main": [
+        [
+          {
+            "node": "Standardize Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unsplash (Photos)": {
+      "main": [
+        [
+          {
+            "node": "Standardize Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Pixabay (Photos)": {
+      "main": [
+        [
+          {
+            "node": "Standardize Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Videvo (Scrape)": {
+      "main": [
+        [
+          {
+            "node": "Standardize Data",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Standardize Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Assets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Assets": {
+      "main": [
+        [
+          {
+            "node": "Download Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Media": {
+      "main": [
+        [
+          {
+            "node": "Save to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

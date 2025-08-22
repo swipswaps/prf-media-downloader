@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prf_media_downloader_n8n
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      # Timezone for cron jobs
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      - ./downloads:/downloads
+    # Wait for PostgreSQL to be ready before starting n8n
+    # In a production setup, you would add a database service here.
+    # For simplicity, this uses the default SQLite database.
+
+volumes:
+  n8n_data:
+  downloads:
