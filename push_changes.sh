@@ -64,6 +64,20 @@ if [ $? -eq 0 ]; then
     REPO_URL=$(git remote get-url origin)
     echo -e "\n${COLOR_GREEN}✔ Successfully pushed changes!${COLOR_RESET}"
     echo -e "You can view your repository here: ${COLOR_CYAN}${REPO_URL}${COLOR_RESET}"
+
+    # Provide a system-specific command to open the URL
+    OPEN_CMD=""
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        OPEN_CMD="xdg-open"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        OPEN_CMD="open"
+    elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        OPEN_CMD="start"
+    fi
+
+    if [ -n "$OPEN_CMD" ]; then
+        echo -e "Or run this command to open it now: ${COLOR_YELLOW}${OPEN_CMD} ${REPO_URL}${COLOR_RESET}"
+    fi
 else
     echo -e "\n${COLOR_RED}✖ An error occurred during the push process. Please check the output above.${COLOR_RESET}"
     exit 1
