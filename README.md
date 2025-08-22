@@ -6,18 +6,64 @@ Supported Sources:
 - **API-based**: Unsplash, Pexels, Pixabay
 - **Scraping-based**: Coverr, Mixkit, Videvo
 
-## Prerequisites
+## 1. Install Prerequisites
 
-Before you begin, ensure you have the following installed:
-- [Python 3.8+](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/downloads)
-- [GitHub CLI](https://cli.github.com/)
+Before you can run the project, you need to install some essential tools.
 
-## Setup Instructions
+<details>
+<summary><strong>macOS Installation (using Homebrew)</strong></summary>
+
+Open your Terminal and run the following commands:
+
+```bash
+# Install Homebrew if you don't have it already
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Python, Git, and the GitHub CLI
+brew install python git github
+```
+
+</details>
+
+<details>
+<summary><strong>Windows Installation (using Chocolatey)</strong></summary>
+
+Open PowerShell as an Administrator and run the following commands:
+
+```powershell
+# Install Chocolatey package manager if you don't have it
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install Python, Git, and the GitHub CLI
+choco install python git gh -y
+```
+
+</details>
+
+<details>
+<summary><strong>Linux Installation (for Debian/Ubuntu)</strong></summary>
+
+Open your terminal and run the following commands:
+
+```bash
+# Update package list and install Python and Git
+sudo apt update && sudo apt install python3 python3-pip python3-venv git -y
+
+# Install the GitHub CLI
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+```
+
+</details>
+
+## 2. Set Up the Project
 
 Follow these steps to get the project running on your local machine.
 
-### 1. Clone the Repository
+### a. Clone the Repository
 
 Open your terminal and clone this repository:
 ```bash
@@ -25,7 +71,7 @@ gh repo clone swipswaps/prf-media-downloader
 cd prf-media-downloader
 ```
 
-### 2. Set Up a Virtual Environment
+### b. Set Up a Virtual Environment
 
 It's highly recommended to use a virtual environment to manage dependencies and avoid conflicts with other projects.
 
@@ -40,7 +86,7 @@ source .venv/bin/activate
 # .\.venv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+### c. Install Python Dependencies
 
 Install the required Python packages using the `requirements.txt` file:
 
@@ -48,7 +94,7 @@ Install the required Python packages using the `requirements.txt` file:
 pip install -r requirements.txt
 ```
 
-### 4. Configure API Keys
+### d. Configure API Keys
 
 The application requires API keys for Unsplash, Pexels, and Pixabay.
 
@@ -63,7 +109,7 @@ The application requires API keys for Unsplash, Pexels, and Pixabay.
 
 The application will automatically load these keys at runtime.
 
-## Usage
+## 3. Usage
 
 You can run the application in two modes: via the command line (CLI) or with the graphical user interface (GUI).
 
