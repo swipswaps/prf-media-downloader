@@ -1,0 +1,161 @@
+[owner@192.168.1.135-20250822-102755 68a82981-ed88-8325-a14a-c96c267480c7]$ ./push_changes.sh 
+Changes detected in your repository:
+ D 68a82981-ed88-8325-a14a-c96c267480c7_2025_08_22_07_40_00.txt
+ M README.md
+ D install_and_run.sh
+ D prf_media_downloader.py
+ D requirements.txt
+?? Dockerfile
+?? docker-compose.yml
+?? workflow.json
+
+Checking Git identity...
+  - Git user.name and user.email are not explicitly set.
+  - Git will proceed using a system-generated identity.
+  - To set your identity permanently, you can use:
+    git config --global user.name "Your Name"
+    git config --global user.email "you@example.com"
+
+Please enter a commit message (e.g., 'feat: Add user login page'):
+> restores @push_changes.sh after Gemini Pro 2.5 removed it in Cursor reminder: must set rules
+
+🚀 Staging all changes, committing, and pushing to remote...
+[master 3f02d99] restores @push_changes.sh after Gemini Pro 2.5 removed it in Cursor reminder: must set rules
+ Committer: owner <owner@localhost-live.attlocal.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 8 files changed, 471 insertions(+), 2373 deletions(-)
+ delete mode 100644 68a82981-ed88-8325-a14a-c96c267480c7_2025_08_22_07_40_00.txt
+ create mode 100644 Dockerfile
+ create mode 100644 docker-compose.yml
+ delete mode 100644 install_and_run.sh
+ delete mode 100644 prf_media_downloader.py
+ delete mode 100644 requirements.txt
+ create mode 100644 workflow.json
+Enumerating objects: 8, done.
+Counting objects: 100% (8/8), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 4.88 KiB | 4.88 MiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/swipswaps/prf-media-downloader.git
+   1d83dd3..3f02d99  master -> master
+
+✔ Successfully pushed changes!
+You can view your repository here: https://github.com/swipswaps/prf-media-downloader.git
+
+Open repository in browser? (y/N) y
+Opening...
+/usr/bin/xdg-open: line 1045: www-browser: command not found
+/usr/bin/xdg-open: line 1045: links2: command not found
+/usr/bin/xdg-open: line 1045: elinks: command not found
+/usr/bin/xdg-open: line 1045: links: command not found
+/usr/bin/xdg-open: line 1045: lynx: command not found
+/usr/bin/xdg-open: line 1045: w3m: command not found
+xdg-open: no method available for opening 'https://github.com/swipswaps/prf-media-downloader.git'
+[owner@192.168.1.135-20250822-103317 68a82981-ed88-8325-a14a-c96c267480c7]$ cat push_changes.sh 
+#!/bin/bash
+
+# A simple helper script to stage, commit, and push repository changes.
+
+# ANSI Color Codes
+COLOR_RESET='\033[0m'
+COLOR_GREEN='\033[0;32m'
+COLOR_YELLOW='\033[0;33m'
+COLOR_RED='\033[0;31m'
+COLOR_CYAN='\033[0;36m'
+
+# --- Step 1: Check for changes ---
+# Refresh the git index to make sure we're looking at the latest state
+git update-index -q --refresh
+
+# Check for uncommitted changes
+if git diff-index --quiet HEAD --; then
+    echo -e "${COLOR_GREEN}✔ No changes detected in the repository. Everything is up to date.${COLOR_RESET}"
+    exit 0
+fi
+
+# --- Step 2: Show the user what has changed ---
+echo -e "${COLOR_YELLOW}Changes detected in your repository:${COLOR_RESET}"
+git status -s # -s provides short, easy-to-read output
+echo "" # Add a newline for spacing
+
+# --- Step 3: Confirm Git Identity ---
+USER_NAME=$(git config --get user.name)
+USER_EMAIL=$(git config --get user.email)
+
+echo -e "${COLOR_CYAN}Checking Git identity...${COLOR_RESET}"
+
+if [ -n "$USER_NAME" ] && [ -n "$USER_EMAIL" ]; then
+    echo -e "  - Committing as: ${COLOR_GREEN}$USER_NAME <$USER_EMAIL>${COLOR_RESET}"
+else
+    echo -e "  - ${COLOR_YELLOW}Git user.name and user.email are not explicitly set.${COLOR_RESET}"
+    echo -e "  - Git will proceed using a system-generated identity."
+    echo -e "  - To set your identity permanently, you can use:"
+    echo -e "    git config --global user.name \"Your Name\""
+    echo -e "    git config --global user.email \"you@example.com\""
+fi
+echo ""
+
+# --- Step 4: Prompt for a commit message ---
+echo -e "${COLOR_CYAN}Please enter a commit message (e.g., 'feat: Add user login page'):${COLOR_RESET}"
+read -p "> " COMMIT_MESSAGE
+
+# Check if a commit message was provided
+if [ -z "$COMMIT_MESSAGE" ]; then
+    echo -e "${COLOR_RED}✖ Commit message cannot be empty. Aborting.${COLOR_RESET}"
+    exit 1
+fi
+
+# --- Step 5: Stage, Commit, and Push ---
+echo -e "\n${COLOR_YELLOW}🚀 Staging all changes, committing, and pushing to remote...${COLOR_RESET}"
+
+git add . && \
+git commit -m "$COMMIT_MESSAGE" && \
+git push
+
+# --- Step 6: Final Confirmation ---
+# Check the exit code of the last command ($?) to see if it was successful
+if [ $? -eq 0 ]; then
+    REPO_URL=$(git remote get-url origin)
+    echo -e "\n${COLOR_GREEN}✔ Successfully pushed changes!${COLOR_RESET}"
+    echo -e "You can view your repository here: ${COLOR_CYAN}${REPO_URL}${COLOR_RESET}"
+
+    # --- Step 7: Offer to open in browser ---
+    # Detect the correct open command based on OS
+    OPEN_CMD=""
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        OPEN_CMD="xdg-open"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        OPEN_CMD="open"
+    elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        OPEN_CMD="start"
+    fi
+
+    # If an open command is available, ask the user
+    if [ -n "$OPEN_CMD" ]; then
+        echo "" # Add a newline for spacing
+        read -p "$(echo -e ${COLOR_YELLOW}"Open repository in browser? (y/N) "${COLOR_RESET})" choice
+        case "$choice" in
+          y|Y ) 
+            echo -e "Opening..."
+            $OPEN_CMD $REPO_URL
+            ;;
+          * ) 
+            # Do nothing on any other input
+            ;;
+        esac
+    fi
+else
+    echo -e "\n${COLOR_RED}✖ An error occurred during the push process. Please check the output above.${COLOR_RESET}"
+    exit 1
+fi
